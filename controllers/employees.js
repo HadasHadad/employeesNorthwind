@@ -38,6 +38,7 @@ async function createEmployee(req, res) {
         const savedNewEmployee = new Employee(newEmployee);
         savedNewEmployee.save()
         res.json(savedNewEmployee);
+    
 
     } catch (error) {
         console.log(error)
@@ -55,6 +56,7 @@ async function editEmployee(req, res) {
 
         for (let key in newEmployeeData) {
             key = key.toLowerCase()
+            console.log(key)
             editEmployee[key] = newEmployeeData[key];
         }
         console.log(editEmployee)

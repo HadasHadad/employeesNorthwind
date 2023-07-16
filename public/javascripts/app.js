@@ -8,6 +8,9 @@ const saveEditBtn = document.querySelector ('#saveEdit')
 const confirmDeleteBtn = document.querySelector('#confirmDelete')
 const declineDeleteBtn = document.querySelector ('#declineDelete')
 
+let idToDelete;
+let paramsToEdit=[];
+
 
 
 submitCreateBtn.addEventListener("click", create)
@@ -18,7 +21,6 @@ confirmDeleteBtn.addEventListener("click", onDelete)
 
 
 let employeesArr=[]
-function displayEmployees(){
 
 
 
@@ -28,43 +30,60 @@ fetch("http://localhost:3000/api/employees")
         console.log(employees)
        
         employees.forEach(employee => {
-            const id = employee.id
+          
             employeesArr.push(employee)
           
-            employeesList.innerHTML += `
-        <tr>
-        <th >${employee.id}</th>
-        <td><img class="rounded" src= "https://randomuser.me/api/portraits/men/${employee.id}.jpg" /></td>
-        <td>${employee.first_name ? employee.first_name : ''}</td>
-        <td>${employee.last_name ? employee.last_name : ''}</td>
-        <td>${employee.home_phone ? employee.home_phone : ''}</td>
-        <td>${employee.address ? employee.address : ''}</td>
-        <td>
-            <button id="edit${employee.id}" data-id="${employee.id}" class="editBtn btn btn-warning"data-bs-toggle="modal" data-bs-target="#editModal">Edit</button>
-            <button id="delete${employee.id}" data-id="${employee.id}" class="deleteBtn btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">Delete</button>
-        </td>
-      </tr>
-        `
-        const deleteBtn = document.querySelector(`#delete${employee.id}`)
-        deleteBtn.addEventListener("click",()=> setParams(id))
         });
-        // addListeners();
-    })
+        displayEmployees();
+    });
+
+    
+
+    function displayEmployees(){
+
+        employeesArr.forEach(employee => {
+            
+            employeesList.innerHTML += `
+            <tr>
+            <th >${employee.id}</th>
+            <td><img class="rounded" src= "https://randomuser.me/api/portraits/men/${employee.id}.jpg" /></td>
+            <td>${employee.first_name ? employee.first_name : ''}</td>
+            <td>${employee.last_name ? employee.last_name : ''}</td>
+            <td>${employee.home_phone ? employee.home_phone : ''}</td>
+            <td>${employee.address ? employee.address : ''}</td>
+            <td>
+                <button id="edit${employee.id}" data-id="${employee.id}" class="editBtn btn btn-warning"data-bs-toggle="modal" data-bs-target="#editModal">Edit</button>
+                <button id="delete${employee.id}" data-id="${employee.id}" class="deleteBtn btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">Delete</button>
+            </td>
+          </tr>
+            `
+        });
+        employeesArr.forEach(employee => {
+            const deleteBtn = document.querySelector(`#delete${employee.id}`);
+            const editBtn = document.querySelector(`#edit${employee.id}`)
+            deleteBtn.addEventListener("click", () => setParams(employee.id));
+            editBtn.addEventListener("click",()=>( setParamsEdit(employee.id, employee.first_name, employee.last_name, employee.home_phone, employee.address)))
+        });
+
+
+    }
     function setParams(id){
         console.log(`setting params ${id}`)
+        idToDelete = id;
     }
-    function addListeners(){
-        const deleteBtn = document.querySelectorAll('.deleteBtn')
-        deleteBtns.forEach(deleteBtn => {
-            deleteBtn.addEventListener("click",()=>function (event){
-                 const id= event.target.dataset.id  
-                  console.log(id)})
-          
-        });
-        deleteBtns.addEventListener("click",()=>function (event){ event.target.dataset.id})
-console.log(deleteBtns)
+    function setParamsEdit(id, firstName, lastName,phone, adress){
+        console.log(`setting params id:${id}, first:${firstName}, last: ${lastName}, phone:${phone}, adress:${adress}`)
+      
+        paramsToEdit.push(id);
+        paramsToEdit.push(firstName);
+        paramsToEdit.push(lastName);
+        paramsToEdit.push(phone);
+        paramsToEdit.push(adress);
+        
+        
+     
     }
-}
+
 
     function create(event) {
        
@@ -88,6 +107,7 @@ console.log(deleteBtns)
                 "Content-Type": "application/json",
                 // 'Content-Type': 'application/x-www-form-urlencoded',
             },
+            
             body: JSON.stringify({
                 "id": id,
            "company":" company",
@@ -109,33 +129,61 @@ console.log(deleteBtns)
             }
 
             )
+            .then
         })
             
     }
 
     function onDelete(event) {
 
-        console.log(event)
+        console.log(idToDelete)
     
-        // fetch(`http://localhost:3000/api/cars/${id}`, {
-        //     method: "DELETE"
-        // })
-        //     .then(res => res.json())
+        fetch(`http://localhost:3000/api/employees/${idToDelete}`, {
+            method: "DELETE"
+        })
+            .then(res => res.json())
     
-        //     .then(res => {
+            .then(res => {
                 
-        //         const cardDiv = document.getElementById(res.message);
-        //         cardDiv.style.display = "none"
-        //         console.log( cardDiv)
-        //         console.log( res.message)
-        //     });
+                employeesList.innerHTML="";
+                displayEmployees();
+                
+            });
     
     }
 
     function update (){
-        console.log("update")
-    }
+        const firstNameInput = document.querySelector(`#firstNameEdit`).value;
+        const lastNameInput = document.querySelector(`#lastNameEdit`).value;
+        const phoneInput = document.querySelector(`#phoneEdit`).value;
+        const adressInput = document.querySelector(`#adressEdit`).value;
+        console.log(`first: ${firstNameInput}`)
 
-    
-displayEmployees();
+        fetch(`http://localhost:3000/api/employees/${paramsToEdit[0]}`, {
+            method: "PATCH",
+        
+        body: JSON.stringify({
+            "id":paramsToEdit[0],
+       "company":" company",
+       "last_name": lastNameInput,
+       "first_name": firstNameInput,
+       "email_address": "emailA",
+       "job_title": "job",
+       "business_phone": "(123)555-0100",
+       "home_phone": phoneInput,
+       "fax_number": "(123)555-0103",
+       "address":adressInput,
+       "city": "city",
+       "state_province": "WA",
+       "zip_postal_code": 9999,
+       "country_region": "country",
+       "web_page": "http://northwindtraders.com#http://northwindtraders.com/#",
+       "notes": "notes",
+       "salary": 0
+        }
+        )})
+    }
+    paramsToEdit= [];
+    displayEmployees();
+
   
